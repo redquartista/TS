@@ -1,10 +1,9 @@
 #include <stdio.h>
-
+#include "temp.h"
 
 int main(void) {
 
-
-	printf("Hello World\n");
+	printSomething();
 	return 0;
 
 }
