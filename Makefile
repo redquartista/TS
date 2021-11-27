@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall
-OBJ = ts_separator
+OBJ = ts_demux
 OPTFLAGS = -O0
 STD = c11
 CFLAGS += -std=$(STD) -ggdb $(OPTFLAGS)
