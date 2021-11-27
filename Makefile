@@ -6,6 +6,8 @@ STD = c11
 CFLAGS += -std=$(STD) -ggdb $(OPTFLAGS)
 INCLUDES = -Iincludes
 
+default: all
+
 clean:
 	rm $(OBJ) *.o
 
