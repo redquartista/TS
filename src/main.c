@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
-#define TS_FILE_PATH "/home/pi/TS/watermarking_test_task.ts"
+#include "ts.h"
 
 static void printUsage(void) {
 
@@ -12,7 +13,9 @@ static void printUsage(void) {
 
 static void printArguments(char *argv[]) {
 
-    printf("1. Input file : %s\n2. Output video file location : %s\n3. Output audio file location : %s\n", argv[1], argv[2], argv[3]);
+    printf("Verify the arguments. Press CTRL+C to terminate if any of them is incorrect:\n1. Input file : %s\n2. Output video file location : %s\n3. Output audio file location : %s\n\n", argv[1], argv[2], argv[3]);
+    sleep(5);
+    printf("Proceeding\n\n");
 }
 
 int main( int argc, char *argv[] )  {
@@ -29,32 +32,15 @@ int main( int argc, char *argv[] )  {
       exit(0);
    }
    else {
-
       printArguments(argv);
-    
+      printf("Demultiplexing %s\n\n", argv[1]);
+      if(tsDemux(argv)) {
+          printf("Successs!\n\nFind the video file at: %s and\naudio file at: %s\n\n", argv[2], argv[3]);
+          return 1;
+      }
+      else {
+          printf("FAILURE!Something went wrong.\n\n");
+          return 0;
+      }
     }
-
-  /*  FILE *ts, *ts_out;
-    ts = fopen(TS_FILE_PATH, "rb");
-    ts_out =  fopen("output.txt", "w+");
-    if(ts!=NULL){
-        printf("\n\nSOF\n\n");
-        char ch = 0;
-        while (ch != EOF){
-
-            ch = fgetc(ts);
-	    if(ch==0x47)
-	    {
-            	fprintf(ts_out, "\n%x", ch);
-	    }
-	    else
-	    {
-	        fprintf(ts_out, "%x", ch);
-	    }
-	    
-        }
-        printf("\n\nEOF");
-    }
-    fclose(ts);*/
-    return 0;
 }

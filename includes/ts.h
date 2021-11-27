@@ -2,4 +2,4 @@
 
 
 
-void printSomething(void);
+int tsDemux(char *argv[]);
