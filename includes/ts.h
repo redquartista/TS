@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-typedef struct {
-    tsHeader_t header;
-    uint8_t payload[184]; //TODO: Support adaptation field
-} tsPacket_t;
 
 typedef union {
     uint32_t value;
@@ -19,5 +15,10 @@ typedef union {
         uint32_t cc         : 4;
     };
 } tsHeader_t;
+
+typedef struct {
+    tsHeader_t header;
+    uint8_t payload[184]; //TODO: Support adaptation field
+} tsPacket_t;
 
 int tsDemux(char *argv[]);
