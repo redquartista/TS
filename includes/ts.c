@@ -3,9 +3,20 @@
 #include "ts.h"
 
 #define TS_PACKET_BYTES 188
+#define TS_PACKET_PAYLOAD_BYTES 184
 
-static void readTSPacket(FILE *ts_file, tsPacket_t *ts_packet) {
-      fread(ts_packet, 1, TS_PACKET_BYTES, ts_file);
+static int readTSPacket(FILE *ts_file, tsPacket_t *ts_packet) {
+    fread(ts_packet, 1, TS_PACKET_BYTES, ts_file);
+    if(ts_packet->header.syncbyte != 0x47)  {
+        printf("\n\nERROR: Packet out of sync. Sync byte != 0x47\n\n");
+        return 0;
+    }
+    char fileName[20]; //TODO: Make it dynamic
+    sprintf(fileName, "/tmp/%04x.mp4", (unsigned int) ts_packet->header.pid);
+    FILE *f_pid  = fopen(fileName, "a");
+    fwrite(ts_packet->payload, TS_PACKET_PAYLOAD_BYTES, 1, f_pid);
+    fclose(f_pid);
+    return 1;
 };
 
 static unsigned long fileSize(FILE *ts_file){
@@ -17,34 +28,27 @@ static unsigned long fileSize(FILE *ts_file){
 }
 static void printTSPacket(tsPacket_t ts) {
 
-    printf("%02x\n", (unsigned int) ts.header.syncbyte);
-
-//     int i = 0;
-//     printf("\nThe TS packet looks like this: \n");
-//     printf("syncbyte: %02x\n", (unsigned int) ts.header.syncbyte);
-//     printf("tei: %01x\n", (unsigned int) ts.header.tei);
-//     printf("pusi: %01x\n", (unsigned int) ts.header.pusi);
-//     printf("prio: %01x\n", (unsigned int) ts.header.prio);
-//     printf("pid: %d\n", ts.header.pid);
-//     printf("tsc: %01x\n", (unsigned int) ts.header.tsc);
-//     printf("afc: %01x\n", (unsigned int) ts.header.afc);
-//     printf("cc: %01x\n", (unsigned int) ts.header.cc);
+    printf("syncbyte: %02x\n", (unsigned int) ts.header.syncbyte);
+    printf("tei: %01x\n", (unsigned int) ts.header.tei);
+    printf("pusi: %01x\n", (unsigned int) ts.header.pusi);
+    printf("prio: %01x\n", (unsigned int) ts.header.prio);
+    printf("pid: %d\n", ts.header.pid);
+    printf("tsc: %01x\n", (unsigned int) ts.header.tsc);
+    printf("afc: %01x\n", (unsigned int) ts.header.afc);
+    printf("cc: %01x\n", (unsigned int) ts.header.cc);
     
-// /*    printf("Payload: ");
-//     for(i=0; i<184; i++)
-//         printf("02%x", (unsigned int) ts.payload[i]);*/
+    // int i = 0;
+    // printf("Payload: ");
+    // for(i=0; i<184; i++)
+    // printf("02%x", (unsigned int) ts.payload[i]);
 
-//     printf("\n");
+    printf("\n");
 }
 
 int tsDemux(char *argv[]) {
 
     char *ts_loc = argv[1];
     FILE *ts_file; 
-    
-
-    
-    // uint32_t i = 0;
 
     ts_file = fopen(ts_loc, "rb");
     
@@ -52,36 +56,44 @@ int tsDemux(char *argv[]) {
         
         uint32_t fsize = fileSize(ts_file);
         uint32_t fsizePackets = fsize / TS_PACKET_BYTES;
-        uint32_t packetcnt = 0;
 
         printf("File size = %u bytes, file has %u TS packets\n\n", (unsigned int)fsize, (unsigned int) fsizePackets);
         
         tsPacket_t *ts_packet = (tsPacket_t *) malloc((fsizePackets * sizeof(tsPacket_t)) + 1);
         memset((void *)ts_packet, 0, (fsizePackets * sizeof(tsPacket_t)));
 
-        while( packetcnt < fsizePackets) {
-            readTSPacket(ts_file, &ts_packet[packetcnt]);
+        // fread(ts_packet, TS_PACKET_BYTES, fsizePackets, ts_file);
+
+        uint32_t packetcnt = 0;
+        while(packetcnt<fsizePackets) {
+            if(!readTSPacket(ts_file, &ts_packet[packetcnt])) {
+                free(ts_packet);
+                fclose(ts_file);
+                return 0;
+            }
+            printf("\n\npacket #%u\n", packetcnt);
             printTSPacket(ts_packet[packetcnt]);
             packetcnt++;
         } 
 
         int eof = getc(ts_file);
         if( eof != EOF) {
-
             printf("\n\nERROR: EOF could not be detected\n\n");
+            free(ts_packet);
+            fclose(ts_file);
+            return 0;
         }
         else {
-
             printf("\n\nEnd of File\n\n");
-
+            free(ts_packet);
         }
-    
-
     }
     else {
         printf("\n\nFile %s does not exist\n\n", ts_loc);
+        fclose(ts_file);
         return 0;
     }
+
     fclose(ts_file);
-	return 1;
+    return 1;
 }
