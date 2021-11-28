@@ -64,6 +64,19 @@ int tsDemux(char *argv[]) {
             printTSPacket(ts_packet[packetcnt]);
             packetcnt++;
         } 
+
+        int eof = getc(ts_file);
+        if( eof != EOF) {
+
+            printf("\n\nERROR: EOF could not be detected\n\n");
+        }
+        else {
+
+            printf("\n\nEnd of File\n\n");
+
+        }
+    
+
     }
     else {
         printf("\n\nFile %s does not exist\n\n", ts_loc);
