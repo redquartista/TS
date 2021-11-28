@@ -14,7 +14,7 @@ static void printUsage(void) {
 static void printArguments(char *argv[]) {
 
     printf("Verify the arguments. Press CTRL+C to terminate if any of them is incorrect:\n1. Input file : %s\n2. Output video file location : %s\n3. Output audio file location : %s\n\n", argv[1], argv[2], argv[3]);
-    sleep(5);
+    //sleep(5);
     printf("Proceeding\n\n");
 }
 
