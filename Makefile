@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -Werror
 OBJ = ts_demux
 OPTFLAGS = -O0
 STD = c11
