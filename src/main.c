@@ -35,11 +35,11 @@ int main( int argc, char *argv[] )  {
       printArguments(argv);
       printf("Demultiplexing %s\n\n", argv[1]);
       if(tsDemux(argv)) {
-          printf("Successs!\n\nFind the video file at: %s and\naudio file at: %s\n\n", argv[2], argv[3]);
+          printf("\n\nSuccesss!\n\nFind the video file at: %s and\naudio file at: %s\n\n", argv[2], argv[3]);
           return 1;
       }
       else {
-          printf("FAILURE!Something went wrong.\n\n");
+          printf("FAILURE!\n\n");
           return 0;
       }
     }
