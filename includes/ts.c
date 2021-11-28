@@ -1,3 +1,4 @@
+#include <string.h>
 #include "ts.h"
 
 #define TS_PACKET_BYTES 188
@@ -18,23 +19,31 @@ static void printTSPacket(tsPacket_t ts) {
     printf("tsc: %01x\n", (unsigned int) ts.header.tsc);
     printf("afc: %01x\n", (unsigned int) ts.header.afc);
     printf("cc: %01x\n", (unsigned int) ts.header.cc);
-    printf("Payload: ");
-
+    
+/*    printf("Payload: ");
     for(i=0; i<184; i++)
-        printf("02%x", (unsigned int) ts.payload[i]);
+        printf("02%x", (unsigned int) ts.payload[i]);*/
+
+    printf("\n");
 }
 
 int tsDemux(char *argv[]) {
 
     char *ts_loc = argv[1];
     FILE *ts_file; 
-    tsPacket_t ts_packet;
     
+    tsPacket_t ts_packet;
+    memset((void *)&ts_packet, 0, sizeof(ts_packet));
+    
+    uint32_t i = 0;
+
     ts_file = fopen(ts_loc, "rb");
     
     if(ts_file != NULL) {
+       for(i=0; i<5; i++) {
         readTSPacket(ts_file, &ts_packet);
         printTSPacket(ts_packet);
+       } 
     }
     else {
         printf("\n\nFile %s does not exist\n\n", ts_loc);
