@@ -1,9 +1,11 @@
 # TS
 
 1. Clean the workspace by removing old binaries / output files. 
+
 make clean
 
 2. Compile the application
+
 make
 
 3. Run the application
