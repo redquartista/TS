@@ -2,15 +2,15 @@
 
 1. Clean the workspace by removing old binaries / output files. 
 
-make clean
+    make clean
 
 2. Compile the application
 
-make
+    make
 
 3. Run the application
 
-./ts_demux <input_file> <output_video_file> <output_audio_file>
+    ./ts_demux <input_file> <output_video_file> <output_audio_file>
 
 # Usage
 The ts_demux app requires 3 arguments:
