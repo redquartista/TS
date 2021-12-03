@@ -5,9 +5,9 @@
 #define TS_PACKET_BYTES 188
 #define TS_PACKET_PAYLOAD_BYTES 184
 
-/*Temporarily hardcoding the values for demo*/
+/*Temporarily hardcoding the values (possibly incorrect) for demo*/
 #define VIDEO_PID 0x428
-#define AUDIO_PID 0x420
+#define AUDIO_PID 0x448
 
 
 static uint32_t getAudioPID() {
@@ -26,23 +26,20 @@ static int proecssTSPacket(FILE *ts_file, tsPacket_t *ts_packet, char *video_loc
         printf("\n\nERROR: Packet out of sync. Sync byte != 0x47\n\n");
         return 0;
     }
-    char fileName[20]; //TODO: Make it dynamic
 
-    if(ts_packet->header.pid == audioPID)
-    {
-        sprintf(fileName, "%s", audio_loc);
+    FILE *f_pid;
 
+    if(ts_packet->header.pid == audioPID){
+        f_pid = fopen(audio_loc, "a");
     }
-    else if(ts_packet->header.pid == videoPID)
-    {
-        sprintf(fileName, "%s", video_loc);
+    else if(ts_packet->header.pid == videoPID){
+        f_pid  = fopen(video_loc, "a");
     }
     else
     {
         //TODO: Identify and read tables.
+        return 1;
     }
-    FILE *f_pid  = fopen(fileName, "a");
-
     //TODO: Identify and remove adaptation field
     fwrite(ts_packet->payload, TS_PACKET_PAYLOAD_BYTES, 1, f_pid);
     fclose(f_pid);
@@ -79,12 +76,27 @@ static void printTSPacket(tsPacket_t ts) {
 int tsDemux(char *argv[]) {
 
     char *ts_loc = argv[1], *video_loc = argv[2], *audio_loc = argv[3];
-    FILE *ts_file; 
-
-    ts_file = fopen(ts_loc, "rb");
+    FILE *ts_file = fopen(ts_loc, "rb");
     
     if(ts_file != NULL) {
-        
+            
+        FILE *loc_file; 
+
+        /*Open destination files. Overwrite if already exists.*/    
+        loc_file  = fopen(video_loc, "w");
+        if(loc_file == NULL) {
+            printf("Error opening %s", video_loc);
+            return 0;
+        }
+        fclose(loc_file);
+
+        loc_file  = fopen(audio_loc, "w");
+        if(loc_file == NULL) {
+            printf("Error opening %s", audio_loc);
+            return 0;
+        }
+        fclose(loc_file);
+
         uint32_t fsize = fileSize(ts_file);
         uint32_t fsizePackets = fsize / TS_PACKET_BYTES;
 
@@ -95,11 +107,10 @@ int tsDemux(char *argv[]) {
 
         //tsPacket_t *ts_packet = (tsPacket_t *) malloc((fsizePackets * sizeof(tsPacket_t)) + 1);
         //fread(ts_packet, TS_PACKET_BYTES, fsizePackets, ts_file);
-
+        uint32_t packetcnt = 0;
         uint32_t audioPID = getAudioPID();
         uint32_t videoPID = getVideoPID();
-
-        uint32_t packetcnt = 0;
+        
         while(packetcnt<fsizePackets) {
             if(!proecssTSPacket(ts_file, &ts_packet, video_loc, audio_loc, videoPID, audioPID)) {
                 //free(ts_packet);

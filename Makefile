@@ -9,7 +9,7 @@ INCLUDES = -Iincludes
 default: all
 
 clean:
-	rm $(OBJ) *.o
+	rm $(OBJ) *.o *.mp4 *.wav
 
 all:
 	$(CC) $(INCLUDES) $(CFLAGS) -o $(OBJ)  src/main.c includes/*.c
