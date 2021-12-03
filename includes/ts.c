@@ -5,15 +5,45 @@
 #define TS_PACKET_BYTES 188
 #define TS_PACKET_PAYLOAD_BYTES 184
 
-static int readTSPacket(FILE *ts_file, tsPacket_t *ts_packet) {
+/*Temporarily hardcoding the values for demo*/
+#define VIDEO_PID 0x428
+#define AUDIO_PID 0x420
+
+
+static uint32_t getAudioPID() {
+    /*TODO: Find how to get audio PID*/
+    return AUDIO_PID;
+}
+
+static uint32_t getVideoPID() {
+    /*TODO: Find how to get audio PID*/
+    return VIDEO_PID;
+}
+
+static int proecssTSPacket(FILE *ts_file, tsPacket_t *ts_packet, char *video_loc, char* audio_loc, uint32_t videoPID, uint32_t audioPID) {
     fread(ts_packet, TS_PACKET_BYTES, 1, ts_file);
     if(ts_packet->header.syncbyte != 0x47)  {
         printf("\n\nERROR: Packet out of sync. Sync byte != 0x47\n\n");
         return 0;
     }
     char fileName[20]; //TODO: Make it dynamic
-    sprintf(fileName, "/tmp/%04x.mp4", (unsigned int) ts_packet->header.pid);
+
+    if(ts_packet->header.pid == audioPID)
+    {
+        sprintf(fileName, "%s", audio_loc);
+
+    }
+    else if(ts_packet->header.pid == videoPID)
+    {
+        sprintf(fileName, "%s", video_loc);
+    }
+    else
+    {
+        //TODO: Identify and read tables.
+    }
     FILE *f_pid  = fopen(fileName, "a");
+
+    //TODO: Identify and remove adaptation field
     fwrite(ts_packet->payload, TS_PACKET_PAYLOAD_BYTES, 1, f_pid);
     fclose(f_pid);
     return 1;
@@ -26,6 +56,7 @@ static unsigned long fileSize(FILE *ts_file){
     return fsize;
 }
 
+#ifdef PRINT_PACKETS
 static void printTSPacket(tsPacket_t ts) {
     printf("syncbyte: %02x\n", (unsigned int) ts.header.syncbyte);
     printf("tei: %01x\n", (unsigned int) ts.header.tei);
@@ -43,10 +74,11 @@ static void printTSPacket(tsPacket_t ts) {
 
     printf("\n");
 }
+#endif
 
 int tsDemux(char *argv[]) {
 
-    char *ts_loc = argv[1];
+    char *ts_loc = argv[1], *video_loc = argv[2], *audio_loc = argv[3];
     FILE *ts_file; 
 
     ts_file = fopen(ts_loc, "rb");
@@ -58,20 +90,27 @@ int tsDemux(char *argv[]) {
 
         printf("File size = %u bytes, file has %u TS packets\n\n", (unsigned int)fsize, (unsigned int) fsizePackets);
         
-        tsPacket_t ts_packet;// = (tsPacket_t *) malloc((fsizePackets * sizeof(tsPacket_t)) + 1);
+        tsPacket_t ts_packet;
         memset((void *)&ts_packet, 0, sizeof(tsPacket_t));
 
-        // fread(ts_packet, TS_PACKET_BYTES, fsizePackets, ts_file);
+        //tsPacket_t *ts_packet = (tsPacket_t *) malloc((fsizePackets * sizeof(tsPacket_t)) + 1);
+        //fread(ts_packet, TS_PACKET_BYTES, fsizePackets, ts_file);
+
+        uint32_t audioPID = getAudioPID();
+        uint32_t videoPID = getVideoPID();
 
         uint32_t packetcnt = 0;
         while(packetcnt<fsizePackets) {
-            if(!readTSPacket(ts_file, &ts_packet)) {
+            if(!proecssTSPacket(ts_file, &ts_packet, video_loc, audio_loc, videoPID, audioPID)) {
                 //free(ts_packet);
                 fclose(ts_file);
                 return 0;
             }
+
+#ifdef PRINT_PACKETS
             printf("\n\npacket #%u\n", packetcnt);
             printTSPacket(ts_packet);
+#endif
             packetcnt++;
         } 
 
