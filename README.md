@@ -1,7 +1,8 @@
 # TS
 
-This repository hold the source code to a command-line app to be used to demultiplex audio and video file from a DVB transport stream file (A .ts file)
+This repository hold the source code to a command-line app to be used to demultiplex audio and video file from a DVB transport stream file (.ts file)
 
+Current Status : in progress
 1. Clean the workspace by removing old binaries / output files. 
 
     make clean
